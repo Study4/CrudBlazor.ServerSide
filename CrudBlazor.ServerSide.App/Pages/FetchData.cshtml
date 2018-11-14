@@ -80,6 +80,9 @@ else
             LastName = employee.LastName
         });
         employee = new Employee();
+        await JSRuntime.Current.InvokeAsync<string>(
+            "commonJsFunctions.alert",
+            "新增完成");
     }
 
     void Edit(int id)
