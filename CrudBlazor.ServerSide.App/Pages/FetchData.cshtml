@@ -22,7 +22,7 @@
         </div>
     </div>
     <input type="button" value="Add" class="btn btn-primary" onclick="@Add" />
-    <input type="button" value="Update" class="btn btn-primary" onclick="@Update" />
+    <input type="button" value="Update" class="btn btn-primary" onclick="@(()=>Update(employee.Id))" />
 </form>
 
 <br />
@@ -66,15 +66,20 @@ else
 
     protected override async Task OnInitAsync()
     {
-        emps = _db.Employees.ToList();
+        emps = _db.Employees.AsNoTracking().ToList();
     }
 
     async Task Add()
     {
+        employee.Id = 0;
         _db.Add(employee);
-        emps.Add(employee);
         await _db.SaveChangesAsync();
-
+        emps.Add(new Employee() {
+            Id = employee.Id,
+            FirstName = employee.FirstName ,
+            LastName = employee.LastName
+        });
+        employee = new Employee();
     }
 
     void Edit(int id)
@@ -82,10 +87,19 @@ else
         employee = _db.Employees.Where(m => m.Id == id).FirstOrDefault();
     }
 
-    async Task Update()
+    async Task Update(int id)
     {
         _db.Entry(employee).State = EntityState.Modified;
         await _db.SaveChangesAsync();
+        var index = emps.FindIndex(m => m.Id == id);
+        emps[index] = new Employee()
+        {
+            Id = employee.Id,
+            FirstName = employee.FirstName,
+            LastName = employee.LastName
+        };
+        employee = new Employee();
+
     }
 
     async Task Del(int id)
@@ -93,6 +107,9 @@ else
         var obj = _db.Employees.Where(m => m.Id == id).FirstOrDefault();
         _db.Employees.Remove(obj);
         await _db.SaveChangesAsync();
+        var index = emps.FindIndex(m => m.Id == id);
+        emps.RemoveAt(index);
+        employee = new Employee();
     }
 
 }
